@@ -1,0 +1,26 @@
+{
+  "id": "fear-greed",
+  "name": "Fear & Greed",
+  "icon": "icon.svg",
+  "tagline": "CNN Fear & Greed index with the seven indicator charts",
+  "description": "The CNN Fear & Greed sentiment gauge, its history, and the seven indicators behind it: momentum, strength, breadth, put/call, junk bond demand, volatility, and safe haven demand. Also available as `gloomberb fear-greed` on the command line.",
+  "categories": [
+    "markets",
+    "sentiment"
+  ],
+  "targets": [
+    "cli",
+    "tui",
+    "desktop",
+    "web"
+  ],
+  "hosts": [
+    "production.dataviz.cnn.io"
+  ],
+  "contributes": {
+    "panes": [
+      "fear-greed"
+    ]
+  },
+  "minGloom": "0.15.0"
+}
