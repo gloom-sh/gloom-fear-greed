@@ -1,4 +1,5 @@
 import type { ProjectedChartPoint } from "gloomberb/components";
+import { httpFetch, type HttpFetchTransport } from "gloomberb/utils";
 
 const CNN_FEAR_GREED_GRAPH_URL = "https://production.dataviz.cnn.io/index/fearandgreed/graphdata";
 const CNN_REFERER = "https://www.cnn.com/markets/fear-and-greed";
@@ -308,24 +309,24 @@ function formatLocalDate(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-function isDomRuntime(): boolean {
-  return typeof (globalThis as { document?: unknown }).document !== "undefined";
-}
-
+/**
+ * CNN serves this endpoint only to something that looks like its own page, so
+ * the referer and user agent are not optional.
+ *
+ * They used to be dropped in a DOM runtime, where a browser refuses to let
+ * script set either. That is no longer the runtime making the request: every
+ * call goes through `httpFetch`, which hands it to the desktop's Bun process or
+ * to the hosted app's worker proxy, and both send these as real headers.
+ */
 function cnnFetchHeaders(): HeadersInit {
-  const headers: Record<string, string> = {
+  return {
     Accept: "application/json,text/plain,*/*",
+    "User-Agent": CNN_USER_AGENT,
+    Referer: CNN_REFERER,
   };
-
-  if (!isDomRuntime()) {
-    headers["User-Agent"] = CNN_USER_AGENT;
-    headers.Referer = CNN_REFERER;
-  }
-
-  return headers;
 }
 
-async function fetchCnnGraphData(url: string, fetcher: typeof fetch): Promise<CnnFearGreedGraphData> {
+async function fetchCnnGraphData(url: string, fetcher: HttpFetchTransport): Promise<CnnFearGreedGraphData> {
   const response = await fetcher(url, { headers: cnnFetchHeaders() });
   const body = await response.text();
   if (!response.ok) {
@@ -348,9 +349,9 @@ async function fetchCnnGraphData(url: string, fetcher: typeof fetch): Promise<Cn
 
 export async function fetchFearGreedData(options: {
   date?: Date;
-  fetcher?: typeof fetch;
+  fetcher?: HttpFetchTransport;
 } = {}): Promise<FearGreedData> {
-  const fetcher = options.fetcher ?? fetch;
+  const fetcher = options.fetcher ?? httpFetch;
   const date = options.date ?? new Date();
   const latestUrl = `${CNN_FEAR_GREED_GRAPH_URL}/${formatLocalDate(date)}`;
 
