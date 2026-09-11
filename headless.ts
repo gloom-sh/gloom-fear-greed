@@ -3,6 +3,7 @@ import type {
   HeadlessPaneDefinition,
   HeadlessPaneLoadArgs,
 } from "gloomberb/types/plugin";
+import { httpFetch } from "gloomberb/utils";
 import { loadFearGreed, type FearGreedLoadResult } from "./cache";
 import { fetchFearGreedData, type FearGreedData } from "./data";
 import { formatIndicatorValue, formatScore, ratingLabel } from "./format";
@@ -57,7 +58,7 @@ export interface FearGreedHeadlessDependencies {
 
 const defaultDependencies: FearGreedHeadlessDependencies = {
   load: (_args, signal) => loadFearGreed(false, () => fetchFearGreedData({
-    fetcher: ((input, init) => fetch(input, { ...init, signal })) as typeof fetch,
+    fetcher: (url, init) => httpFetch(url, { ...init, signal }),
   })),
 };
 
