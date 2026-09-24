@@ -22,57 +22,6 @@ import {
 
 const CHART_META_STACK_WIDTH = 84;
 
-export function PreviousScoreGrid({ data, width, layout = "grid" }: { data: FearGreedData; width: number; layout?: "grid" | "rail" }) {
-  const items = [
-    { label: "Previous close", value: data.overall.previousClose },
-    { label: "1 week ago", value: data.overall.previousWeek },
-    { label: "1 month ago", value: data.overall.previousMonth },
-    { label: "1 year ago", value: data.overall.previousYear },
-  ];
-  const columns = width >= 84 ? 4 : width >= 42 ? 2 : 1;
-  const columnWidth = Math.max(18, Math.floor((width - 2) / columns));
-  const rows = Array.from({ length: Math.ceil(items.length / columns) }, (_, rowIndex) => (
-    items.slice(rowIndex * columns, rowIndex * columns + columns)
-  ));
-
-  if (layout === "rail") {
-    return (
-      <Box flexDirection="column" width={width} flexShrink={0}>
-        {items.map((item) => {
-          const value = item.value;
-          const color = value == null ? colors.textDim : ratingColor(value < 25 ? "extreme fear" : value < 45 ? "fear" : value <= 55 ? "neutral" : "greed");
-          return (
-            <Box key={item.label} flexDirection="row" height={1}>
-              <Text fg={colors.textDim}>{item.label}: </Text>
-              <Box flexGrow={1} />
-              <Text fg={color} attributes={TextAttributes.BOLD}>{formatScore(value)}</Text>
-            </Box>
-          );
-        })}
-      </Box>
-    );
-  }
-
-  return (
-    <Box flexDirection="column" paddingX={1} marginTop={1}>
-      {rows.map((row, rowIndex) => (
-        <Box key={rowIndex} flexDirection="row" height={1}>
-          {row.map((item) => {
-            const value = item.value;
-            const color = value == null ? colors.textDim : ratingColor(value < 25 ? "extreme fear" : value < 45 ? "fear" : value <= 55 ? "neutral" : "greed");
-            return (
-              <Box key={item.label} width={columnWidth} flexShrink={0} flexDirection="row">
-                <Text fg={colors.textDim}>{item.label}: </Text>
-                <Text fg={color} attributes={TextAttributes.BOLD}>{formatScore(value)}</Text>
-              </Box>
-            );
-          })}
-        </Box>
-      ))}
-    </Box>
-  );
-}
-
 function chartOverlay(indicator: FearGreedIndicator): StaticChartOverlay[] | undefined {
   if (indicator.secondaryPoints.length === 0) return undefined;
   return [{ id: "secondary", color: colors.warning, points: indicator.secondaryPoints }];
@@ -105,18 +54,7 @@ function SentimentChart({
 }) {
   const isDesktopWeb = useUiHost().kind === "desktop-web";
   const stackMeta = width < CHART_META_STACK_WIDTH;
-  const chartWidth = Math.max(24, width - 2);
-  const chartHeight = width >= 96 ? 12 : 10;
   const color = ratingColor(rating);
-  const palette = useMemo(() => {
-    const basePalette = resolveChartPalette(colors, ratingTrend(rating));
-    return {
-      ...basePalette,
-      lineColor: color,
-      fillColor: blendHex(colors.bg, color, 0.18),
-      gridColor: blendHex(colors.bg, colors.border, 0.55),
-    };
-  }, [color, rating]);
   const latest = points.length > 0 ? points[points.length - 1]!.close : null;
 
   return (
@@ -156,6 +94,48 @@ function SentimentChart({
           />
         </Box>
       )}
+      <SentimentPlot
+        rating={rating}
+        points={points}
+        width={width}
+        valueFormat={valueFormat}
+        updatedAt={updatedAt}
+        overlays={overlays}
+      />
+    </Box>
+  );
+}
+
+function SentimentPlot({
+  rating,
+  points,
+  width,
+  valueFormat,
+  updatedAt,
+  overlays,
+}: {
+  rating: FearGreedRating;
+  points: FearGreedIndicator["points"];
+  width: number;
+  valueFormat: FearGreedValueFormat;
+  updatedAt: Date | null;
+  overlays?: StaticChartOverlay[];
+}) {
+  const chartWidth = Math.max(24, width - 2);
+  const chartHeight = width >= 96 ? 12 : 10;
+  const color = ratingColor(rating);
+  const palette = useMemo(() => {
+    const basePalette = resolveChartPalette(colors, ratingTrend(rating));
+    return {
+      ...basePalette,
+      lineColor: color,
+      fillColor: blendHex(colors.bg, color, 0.18),
+      gridColor: blendHex(colors.bg, colors.border, 0.55),
+    };
+  }, [color, rating]);
+
+  return (
+    <>
       {points.length >= 2 ? (
         <Box marginTop={1}>
           <StaticChartSurface
@@ -179,7 +159,7 @@ function SentimentChart({
       <Box height={1} marginTop={1}>
         <Text fg={colors.textDim}>{formatUpdatedAt(updatedAt)}</Text>
       </Box>
-    </Box>
+    </>
   );
 }
 
@@ -221,7 +201,7 @@ function ChartStats({
   secondaryValue?: number | null;
   valueFormat: FearGreedValueFormat;
 }) {
-  // The index history charts the score itself, so its "latest" repeats the score.
+  // Hide a latest value that reads the same as the score.
   const latestText = formatIndicatorValue(latest, valueFormat);
   const showLatest = latestText !== formatScore(score);
   return (
@@ -244,36 +224,19 @@ function ChartStats({
   );
 }
 
+// The gauge above already shows the score, its rating and what the series is,
+// so the history is the plot alone.
 export function IndexHistoryChart({ data, width }: { data: FearGreedData; width: number }) {
-  const indicator: FearGreedIndicator = {
-    definition: {
-      id: "index-history",
-      title: "Index History",
-      subtitle: "Fear & Greed score over the past year",
-      primaryKey: "fear_and_greed_historical",
-      primaryLabel: "Fear & Greed",
-      valueFormat: "score",
-    },
-    score: data.overall.score,
-    rating: data.overall.rating,
-    updatedAt: data.overall.updatedAt,
-    points: data.overall.history,
-    secondaryPoints: [],
-    latestValue: data.overall.score,
-    latestSecondaryValue: null,
-  };
-
   return (
-    <SentimentChart
-      title={indicator.definition.title}
-      rating={indicator.rating}
-      score={indicator.score}
-      points={indicator.points}
-      width={width}
-      valueFormat={indicator.definition.valueFormat}
-      updatedAt={indicator.updatedAt}
-      primaryLabel={indicator.definition.primaryLabel}
-    />
+    <Box flexDirection="column" paddingX={1}>
+      <SentimentPlot
+        rating={data.overall.rating}
+        points={data.overall.history}
+        width={width}
+        valueFormat="score"
+        updatedAt={data.overall.updatedAt}
+      />
+    </Box>
   );
 }
 

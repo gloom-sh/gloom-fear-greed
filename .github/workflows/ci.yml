@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # The host revision this plugin builds against. Bump after a host release.
-      GLOOMBERB_REVISION: fe5554931afcfc91f09042e9d3ed2e9c8322cd24
+      GLOOMBERB_REVISION: 4172ad1f122651f980a97755d4db0c3ad5c6f0d9
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2

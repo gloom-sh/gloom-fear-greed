@@ -14,7 +14,7 @@ Open `FNG` in the command bar. Also in the hosted web app at term.gloom.sh, wher
 
 ## Usage
 
-The gauge shows today's reading against the previous close, week, month, and year, with the seven indicator charts below it. `r` refreshes. `gloomberb fear-greed` prints the same data on the command line, and `gloomberb fn fear-greed` returns the headless model.
+The readings at the previous close and one week, month, and year ago sit in a band along the top, above today's gauge, a year of index history, and the seven indicator charts. `r` refreshes. `gloomberb fear-greed` prints the same data on the command line, and `gloomberb fn fear-greed` returns the headless model.
 
 ## Data
 
