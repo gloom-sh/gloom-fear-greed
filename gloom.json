@@ -20,6 +20,13 @@
   "contributes": {
     "panes": [
       "fear-greed"
+    ],
+    "shortcuts": [
+      {
+        "code": "FNG",
+        "name": "Fear & Greed",
+        "description": "CNN Fear & Greed index with its history and the seven indicators behind it."
+      }
     ]
   },
   "minGloom": "0.15.0"
