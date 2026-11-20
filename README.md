@@ -2,7 +2,9 @@
 
 The CNN Fear & Greed sentiment gauge, its history, and the seven indicators behind it: market momentum, stock price strength, stock price breadth, put and call options, junk bond demand, market volatility, and safe haven demand.
 
-## Install
+> Fear & Greed is built into Gloom v0.15.3 and later: open `FNG` in the command bar, with nothing to install from here. This repository is for older versions.
+
+## Install on older versions
 
 Requires Gloom 0.15.0 or newer. Gloom restores this plugin once for existing installations when it moves out of the core app: saved panes keep working because the pane and template ids are unchanged, a previously disabled plugin stays disabled, and a deliberate removal is respected.
 
@@ -18,7 +20,7 @@ The readings at the previous close and one week, month, and year ago sit in a ba
 
 ## Data
 
-CNN's public Fear & Greed endpoint at `production.dataviz.cnn.io`. Unofficial; if CNN changes it the pane breaks until this plugin is updated, which is one reason it is a plugin rather than part of the core app. The last good reading is cached so the pane has something to show before the first fetch.
+CNN's public Fear & Greed endpoint at `production.dataviz.cnn.io`. Unofficial; if CNN changes it the pane breaks until it is updated. The last good reading is cached so the pane has something to show before the first fetch.
 
 ## Development
 
